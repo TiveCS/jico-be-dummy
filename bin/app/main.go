@@ -22,6 +22,9 @@ import (
 	connectionRepositoryQueries "login-api-jwt/bin/modules/connection/repositories/queries"
 	connectionUsecases "login-api-jwt/bin/modules/connection/usecases"
 
+	webhookHandler "login-api-jwt/bin/modules/webhook/handlers"
+	webhookUsecases "login-api-jwt/bin/modules/webhook/usecases"
+
 	"login-api-jwt/bin/pkg/databases"
 	"login-api-jwt/bin/pkg/servers"
 	"os"
@@ -55,6 +58,7 @@ func main() {
 	setProjectHTTP(orm, srv)
 	setMessageProviderHTTP(orm, srv)
 	setConnectionHTTP(orm, srv)
+	setWebhookHTTP(orm, srv)
 
 	// Get port from environment variables, or use default port 8050
 	defaultPort := "8050"
@@ -121,4 +125,14 @@ func setConnectionHTTP(orm *databases.ORM, srv *servers.GinServer) {
 
 	// Initialize connection HTTP handlers with query and command use cases, and link them with the Gin server
 	connectionHandler.InitConnectionHTTPHandler(connectionQueryUsecase, connectionCommandUsecase, srv)
+}
+
+func setWebhookHTTP(orm *databases.ORM, srv *servers.GinServer) {
+	// Initialize webhook HTTP handlers with query and command use cases, and link them with the Gin server
+	connectionQueryRepository := connectionRepositoryQueries.NewQueryRepository(orm)
+
+	webhookQueryUsecase := webhookUsecases.NewQueryUsecase(connectionQueryRepository)
+	webhookCommandUsecase := webhookUsecases.NewCommandUsecase(connectionQueryRepository)
+
+	webhookHandler.InitWebhookHTTPHandler(webhookQueryUsecase, webhookCommandUsecase, srv)
 }
