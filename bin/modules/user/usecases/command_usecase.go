@@ -240,3 +240,55 @@ func (q CommandUsecase) DeleteUser(ctx *gin.Context) {
 	}
 	ctx.JSON(result.Code, result)
 }
+
+func (q CommandUsecase) PutProfile(ctx *gin.Context) {
+	var result = utils.ResultResponse{
+		Code:    http.StatusOK,
+		Data:    nil,
+		Message: "Failed Post Message Provider",
+		Status:  false,
+	}
+
+	userID := ctx.Param("id")
+	var userModel models.User
+	err := ctx.ShouldBind(&userModel)
+	if err != nil {
+		ctx.AbortWithStatusJSON(result.Code, result)
+	}
+
+	userModel.UserID = userID
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userModel.Password), bcrypt.DefaultCost)
+	if err != nil {
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+	userModel.Password = string(hashedPassword)
+
+	// Response data for successful registration
+	Response := userModel
+
+	r := q.UserRepositoryCommand.Updates(ctx, Response)
+	if r.DB.Error != nil {
+		// If there was an error, return Internal Server Error with error message
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+
+	if r.DB.RowsAffected == 0 {
+		// If there was an error, return Internal Server Error with error message
+		result.Message = "Message Provider ID not available"
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+	result = utils.ResultResponse{
+		Code:    http.StatusOK,
+		Data:    Response,
+		Message: "Success Update User",
+		Status:  true,
+	}
+	// If messageprovider record was successfully saved, respond with messageprovider's registration data
+	ctx.JSON(result.Code, result)
+
+}

@@ -126,3 +126,14 @@ func (c *CommandRepository) Delete(ctx *gin.Context, userID string) utils.Result
 
 	return output
 }
+
+func (c *CommandRepository) Updates(ctx *gin.Context, u models.User) utils.Result {
+
+	r := c.ORM.DB.Updates(&u)
+
+	output := utils.Result{
+		Data: u,
+		DB:   r,
+	}
+	return output
+}
