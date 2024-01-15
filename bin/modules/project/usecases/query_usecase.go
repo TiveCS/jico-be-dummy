@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -180,7 +181,9 @@ func (q QueryUsecase) GetAccess(ctx *gin.Context) {
 }
 
 func (q QueryUsecase) GetUserOwned(ctx *gin.Context) {
-	id := ctx.Param("id")
+	user := ctx.MustGet("user").(jwt.MapClaims)
+	id := user["id"].(string)
+
 	var totalCount, page, limit int
 	var err error
 
@@ -251,7 +254,9 @@ func (q QueryUsecase) GetUserOwned(ctx *gin.Context) {
 }
 
 func (q QueryUsecase) GetConnectedUserOwned(ctx *gin.Context) {
-	id := ctx.Param("id")
+	user := ctx.MustGet("user").(jwt.MapClaims)
+	id := user["id"].(string)
+
 	var totalCount, page, limit int
 	var err error
 

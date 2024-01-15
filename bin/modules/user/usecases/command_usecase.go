@@ -278,7 +278,7 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 
 	if r.DB.RowsAffected == 0 {
 		// If there was an error, return Internal Server Error with error message
-		result.Message = "Message Provider ID not available"
+		result.Message = "User ID not available"
 		ctx.AbortWithStatusJSON(result.Code, result)
 		return
 	}

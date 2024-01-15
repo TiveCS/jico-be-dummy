@@ -1,11 +1,12 @@
 package models
 
 type User struct {
-	UserID   string `json:"id" gorm:"primaryKey;column:user_id"`
-	Email    string `json:"email" form:"email"`
-	Password string `json:"password" form:"password"`
-	Username string `json:"username" form:"username"`
-	Name     string `json:"name" form:"name"`
+	UserID      string `json:"id" gorm:"primaryKey;column:user_id"`
+	Email       string `json:"email" form:"email"`
+	Password    string `json:"password" form:"password"`
+	Username    string `json:"username" form:"username"`
+	Name        string `json:"name" form:"name"`
+	PictureLink string `json:"picture_link" form:"picture_link"`
 }
 
 type UpsertUser struct {
@@ -44,9 +45,10 @@ type RegisterResponse struct {
 }
 
 type GetUserResponse struct {
-	UserID   string `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
+	UserID      string `json:"id"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Username    string `json:"username"`
+	Name        string `json:"name"`
+	PictureLink string `json:"picture_link"`
 }
