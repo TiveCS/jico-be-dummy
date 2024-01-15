@@ -241,9 +241,9 @@ func (q CommandUsecase) DeleteUser(ctx *gin.Context) {
 
 func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 	var result = utils.ResultResponse{
-		Code:    http.StatusOK,
+		Code:    http.StatusBadRequest,
 		Data:    nil,
-		Message: "Failed Post Message Provider",
+		Message: "Failed post profile",
 		Status:  false,
 	}
 
