@@ -18,6 +18,7 @@ type UsecaseQuery interface {
 type UsecaseCommand interface {
 	PostRegister(ctx *gin.Context)
 	PutProfile(ctx *gin.Context)
+	PatchPicture(ctx *gin.Context)
 	PostLogin(ctx *gin.Context)
 	DeleteUser(ctx *gin.Context)
 }
@@ -33,7 +34,9 @@ type RepositoryQuery interface {
 type RepositoryCommand interface {
 	Create(ctx *gin.Context, u models.User) utils.Result
 	Updates(ctx *gin.Context, u models.User) utils.Result
+	UpdatePicture(ctx *gin.Context, p string) utils.Result
 	Save(ctx *gin.Context, u models.User) utils.Result
 	FindPassword(ctx *gin.Context, u string) utils.FindPasswordResult
+	FindPictureLinkByID(ctx *gin.Context, id string) utils.FindPictureLinkResult
 	Delete(ctx *gin.Context, id string) utils.Result
 }

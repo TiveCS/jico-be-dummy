@@ -9,13 +9,14 @@ CREATE TABLE "users" (
   "email" varchar UNIQUE NOT NULL,
   "username" varchar UNIQUE NOT NULL,
   "password" varchar NOT NULL,
-  "name" varchar NOT NULL
+  "name" varchar NOT NULL,
+  "picture_link" varchar
 );
 
 
 CREATE TABLE "projects" (
   "project_id" varchar PRIMARY KEY,
-  "project_user_id" varchar,
+  "project_user_id" varchar NOT NULL,
   "name" varchar
 );
 

@@ -33,7 +33,6 @@ func (q QueryRepository) FindOneByID(ctx *gin.Context, user_id string) utils.Res
 		DB:   r,
 	}
 	return output
-
 }
 
 // FindOneByUsername retrieves a user record from database by username

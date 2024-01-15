@@ -64,6 +64,21 @@ func (c *CommandRepository) FindPassword(ctx *gin.Context, u string) utils.FindP
 	return output
 }
 
+// FindOneByID retrieves a user record from database by ID
+func (c *CommandRepository) FindPictureLinkByID(ctx *gin.Context, user_id string) utils.FindPictureLinkResult {
+	var userModel models.User
+
+	// Use ORM to find a user record by ID
+	r := c.ORM.DB.First(&userModel, "user_id = ?", user_id)
+	// Prepare the result, including retrieved user data and database operation result
+	output := utils.FindPictureLinkResult{
+		PicureLink: userModel.PictureLink,
+		Data:       userModel,
+		DB:         r,
+	}
+	return output
+}
+
 func (c *CommandRepository) Delete(ctx *gin.Context, userID string) utils.Result {
 	// Start a transaction
 
@@ -133,6 +148,17 @@ func (c *CommandRepository) Updates(ctx *gin.Context, u models.User) utils.Resul
 
 	output := utils.Result{
 		Data: u,
+		DB:   r,
+	}
+	return output
+}
+
+func (c *CommandRepository) UpdatePicture(ctx *gin.Context, p string) utils.Result {
+
+	r := c.ORM.DB.Update("picture_link", p)
+
+	output := utils.Result{
+		Data: p,
 		DB:   r,
 	}
 	return output

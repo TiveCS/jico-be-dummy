@@ -25,6 +25,13 @@ type FindPasswordResult struct {
 	Error    error
 }
 
+type FindPictureLinkResult struct {
+	Data       models.User
+	PicureLink string
+	DB         *gorm.DB
+	Error      error
+}
+
 type ResultResponse struct {
 	Code    int         `json:"code"`
 	Data    interface{} `json:"data"`

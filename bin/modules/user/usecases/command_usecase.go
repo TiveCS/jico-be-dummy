@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"errors"
-	"log"
 	"login-api-jwt/bin/modules/user"
 	"login-api-jwt/bin/modules/user/models"
 	"login-api-jwt/bin/pkg/databases"
@@ -12,6 +11,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -55,8 +55,6 @@ func (q CommandUsecase) PostRegister(ctx *gin.Context) {
 	userModel.Name = strings.Title(userModel.Name)
 
 	ctx.Header("Access-Control-Allow-Origin", "*")
-
-	log.Println(userModel.Username)
 
 	// Validate user's email format
 	validEmail := validators.IsValidEmail(userModel.Email)
@@ -248,8 +246,10 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 		Message: "Failed Post Message Provider",
 		Status:  false,
 	}
+	// log.Println(ctx.MustGet("user").(jwt.MapClaims))
 
-	userID := ctx.Param("id")
+	userID := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
+	var beforeUserData = q.UserRepositoryCommand.FindPictureLinkByID(ctx, userID).PicureLink
 	var userModel models.User
 	err := ctx.ShouldBind(&userModel)
 	if err != nil {
@@ -257,6 +257,104 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 	}
 
 	userModel.UserID = userID
+	userModel.PictureLink = beforeUserData
+
+	// Validate user's email format
+	validEmail := validators.IsValidEmail(userModel.Email)
+	if !validEmail {
+		result.Message = "email not valid"
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
+	validUsername := validators.IsValidUsername(userModel.Username)
+	if !validUsername {
+		result.Message = "username not valid"
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
+	ValidPassword := validators.IsValidPassword(userModel.Password)
+	if !ValidPassword {
+		result.Message = "password not valid"
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userModel.Password), bcrypt.DefaultCost)
+	if err != nil {
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+	userModel.Password = string(hashedPassword)
+
+	// Response data for successful registration
+	Response := userModel
+
+	r := q.UserRepositoryCommand.Updates(ctx, Response)
+	if r.DB.Error != nil {
+		// If there was an error, return Internal Server Error with error message
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+
+	if r.DB.RowsAffected == 0 {
+		// If there was an error, return Internal Server Error with error message
+		result.Message = "User ID not available"
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+	result = utils.ResultResponse{
+		Code:    http.StatusOK,
+		Data:    Response,
+		Message: "Success Update User",
+		Status:  true,
+	}
+	// If user record was successfully saved, respond with user's registration data
+	ctx.JSON(result.Code, result)
+}
+
+func (q CommandUsecase) PatchPicture(ctx *gin.Context) {
+	var result = utils.ResultResponse{
+		Code:    http.StatusOK,
+		Data:    nil,
+		Message: "Failed Post Message Provider",
+		Status:  false,
+	}
+
+	userID := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
+	var userModel models.User
+	err := ctx.ShouldBind(&userModel)
+	if err != nil {
+		ctx.AbortWithStatusJSON(result.Code, result)
+	}
+
+	userModel.UserID = userID
+
+	// Validate user's email format
+	validEmail := validators.IsValidEmail(userModel.Email)
+	if !validEmail {
+		result.Message = "email not valid"
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
+	validUsername := validators.IsValidUsername(userModel.Username)
+	if !validUsername {
+		result.Message = "username not valid"
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
+	ValidPassword := validators.IsValidPassword(userModel.Password)
+	if !ValidPassword {
+		result.Message = "password not valid"
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userModel.Password), bcrypt.DefaultCost)
 	if err != nil {
 		result.Code = http.StatusInternalServerError
@@ -290,5 +388,4 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 	}
 	// If messageprovider record was successfully saved, respond with messageprovider's registration data
 	ctx.JSON(result.Code, result)
-
 }

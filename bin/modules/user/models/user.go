@@ -34,6 +34,7 @@ type LoginResponse struct {
 	Email       string `json:"email"`
 	Name        string `json:"name"`
 	Username    string `json:"username"`
+	PictureLink string `json:"picture_link"`
 	AccessToken string `json:"accessToken"`
 }
 
