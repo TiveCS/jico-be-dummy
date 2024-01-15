@@ -11,6 +11,7 @@ type UsecaseQuery interface {
 	GetByID(ctx *gin.Context)
 	GetAccess(ctx *gin.Context)
 	GetByUsername(ctx *gin.Context)
+	GetProfile(ctx *gin.Context)
 	GetByEmail(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
 }

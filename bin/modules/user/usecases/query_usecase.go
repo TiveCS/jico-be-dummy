@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -212,5 +213,45 @@ func (q QueryUsecase) GetAll(ctx *gin.Context) {
 		Message:   "Success Get Data User",
 		Status:    true,
 	}
+	ctx.JSON(http.StatusOK, result)
+}
+
+func (q QueryUsecase) GetProfile(ctx *gin.Context) {
+	var result utils.ResultResponse = utils.ResultResponse{
+		Code:    http.StatusBadRequest,
+		Data:    nil,
+		Message: "Failed Get Data User",
+		Status:  false,
+	}
+
+	id := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
+	// Call FindOneByID method to retrieve user data by ID
+	userData := q.UserRepositoryQuery.FindOneByID(ctx, id)
+	// If there was an error during query, abort with a Bad Request status
+	if userData.DB.Error != nil {
+		if errors.Is(userData.DB.Error, gorm.ErrRecordNotFound) {
+			if errors.Is(userData.DB.Error, gorm.ErrRecordNotFound) {
+				result.Code = http.StatusNotFound
+				result.Message = "Data Not Found"
+				ctx.AbortWithStatusJSON(result.Code, result)
+				return
+			}
+			// If data is not found in the database, abort with status Unauthorized
+			ctx.AbortWithStatusJSON(http.StatusNotFound, result)
+			return
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
+	result = utils.ResultResponse{
+		Code:    http.StatusOK,
+		Data:    userData.Data,
+		Message: "Success Get Data User",
+		Status:  true,
+	}
+
+	// Respond with retrieved user data in JSON format
 	ctx.JSON(http.StatusOK, result)
 }

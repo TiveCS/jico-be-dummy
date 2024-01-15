@@ -246,9 +246,10 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 		Message: "Failed Post Message Provider",
 		Status:  false,
 	}
-	// log.Println(ctx.MustGet("user").(jwt.MapClaims))
 
+	//get JWT data
 	userID := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
+
 	var beforeUserData = q.UserRepositoryCommand.FindPictureLinkByID(ctx, userID).PicureLink
 	var userModel models.User
 	err := ctx.ShouldBind(&userModel)
