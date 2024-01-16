@@ -490,7 +490,7 @@ func (q CommandUsecase) PatchDefaultPassword(ctx *gin.Context) {
 
 	result = utils.ResultResponse{
 		Code:    http.StatusOK,
-		Data:    nil,
+		Data:    os.Getenv("DEFAULT_PASS"),
 		Message: "Success Change User Password",
 		Status:  true,
 	}
