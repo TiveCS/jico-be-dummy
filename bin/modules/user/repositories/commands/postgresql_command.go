@@ -50,7 +50,7 @@ func (c *CommandRepository) Save(ctx *gin.Context, u models.User) utils.Result {
 }
 
 // FindPassword retrieves password for a user by username
-func (c *CommandRepository) FindPassword(ctx *gin.Context, u string) utils.FindPasswordResult {
+func (c *CommandRepository) FindPasswordByUsername(ctx *gin.Context, u string) utils.FindPasswordResult {
 	var userModel models.User
 	userModel.Username = u
 	// Use ORM to find user record by username
@@ -64,15 +64,32 @@ func (c *CommandRepository) FindPassword(ctx *gin.Context, u string) utils.FindP
 	return output
 }
 
+// FindPassword retrieves password for a user by id
+func (c *CommandRepository) FindPasswordByID(ctx *gin.Context, u string) utils.FindPasswordResult {
+	var userModel models.User
+	userModel.Username = u
+	// Use ORM to find user record by ID
+	r := c.ORM.DB.First(&userModel, "user_id = ?", u)
+	// Prepare the result, including retrieved password, user data, and  database operation result
+	output := utils.FindPasswordResult{
+		Password: userModel.Password,
+		Data:     userModel,
+		DB:       r,
+	}
+	return output
+}
+
 // FindOneByID retrieves a user record from database by ID
-func (c *CommandRepository) FindPictureLinkByID(ctx *gin.Context, user_id string) utils.FindPictureLinkResult {
+func (c *CommandRepository) FindProfileByID(ctx *gin.Context, user_id string) utils.FindProfileResult {
 	var userModel models.User
 
 	// Use ORM to find a user record by ID
 	r := c.ORM.DB.First(&userModel, "user_id = ?", user_id)
 	// Prepare the result, including retrieved user data and database operation result
-	output := utils.FindPictureLinkResult{
+	output := utils.FindProfileResult{
 		PicureLink: userModel.PictureLink,
+		Username:   userModel.Username,
+		Name:       userModel.Name,
 		Data:       userModel,
 		DB:         r,
 	}

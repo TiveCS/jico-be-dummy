@@ -25,8 +25,10 @@ type FindPasswordResult struct {
 	Error    error
 }
 
-type FindPictureLinkResult struct {
+type FindProfileResult struct {
 	Data       models.User
+	Username   string
+	Name       string
 	PicureLink string
 	DB         *gorm.DB
 	Error      error

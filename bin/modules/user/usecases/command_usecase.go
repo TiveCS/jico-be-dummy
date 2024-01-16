@@ -157,7 +157,7 @@ func (q CommandUsecase) PostLogin(ctx *gin.Context) {
 	}
 
 	// Find user's password hash by username
-	r := q.UserRepositoryCommand.FindPassword(ctx, userLoginRequest.Username)
+	r := q.UserRepositoryCommand.FindPasswordByUsername(ctx, userLoginRequest.Username)
 	if r.DB.Error != nil {
 		if errors.Is(r.DB.Error, gorm.ErrRecordNotFound) {
 			// If data is not found in the database, abort with status Unauthorized
@@ -250,7 +250,7 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 	//get JWT data
 	userID := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
 
-	var beforeUserData = q.UserRepositoryCommand.FindPictureLinkByID(ctx, userID).PicureLink
+	var beforeUserData = q.UserRepositoryCommand.FindProfileByID(ctx, userID).PicureLink
 	var userModel models.User
 	err := ctx.ShouldBind(&userModel)
 	if err != nil {
@@ -275,20 +275,26 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 		return
 	}
 
-	ValidPassword := validators.IsValidPassword(userModel.Password)
-	if !ValidPassword {
-		result.Message = "password not valid"
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
-		return
-	}
+	if userModel.Password == "" {
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userModel.Password), bcrypt.DefaultCost)
-	if err != nil {
-		result.Code = http.StatusInternalServerError
-		ctx.AbortWithStatusJSON(result.Code, result)
-		return
+		r := q.UserRepositoryCommand.FindPasswordByID(ctx, userID)
+		userModel.Password = r.Password
+	} else {
+		ValidPassword := validators.IsValidPassword(userModel.Password)
+		if !ValidPassword {
+			result.Message = "password not valid"
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+			return
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userModel.Password), bcrypt.DefaultCost)
+		if err != nil {
+			result.Code = http.StatusInternalServerError
+			ctx.AbortWithStatusJSON(result.Code, result)
+			return
+		}
+		userModel.Password = string(hashedPassword)
 	}
-	userModel.Password = string(hashedPassword)
 
 	// Response data for successful registration
 	Response := userModel
