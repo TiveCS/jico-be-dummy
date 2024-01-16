@@ -30,5 +30,7 @@ func InitUserHTTPHandler(uq user.UsecaseQuery, uc user.UsecaseCommand, s *server
 	s.Gin.GET("/user/all", handler.UserUsecaseQuery.GetAll)
 	s.Gin.DELETE("/user/id/:id", handler.UserUsecaseCommand.DeleteUser)
 	s.Gin.PUT("/user/profile", utils.JWTAuthVerifyToken, handler.UserUsecaseCommand.PutProfile)
+	s.Gin.PATCH("/user/password", utils.JWTAuthVerifyToken, handler.UserUsecaseCommand.PatchPassword)
+	s.Gin.PATCH("/user/password/default", handler.UserUsecaseCommand.PatchPassword)
 	s.Gin.GET("/user/profile", utils.JWTAuthVerifyToken, handler.UserUsecaseQuery.GetProfile)
 }

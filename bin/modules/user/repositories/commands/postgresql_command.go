@@ -4,6 +4,7 @@ import (
 	connectionModels "login-api-jwt/bin/modules/connection/models"
 	messageProviderModels "login-api-jwt/bin/modules/messageprovider/models"
 	projectModels "login-api-jwt/bin/modules/project/models"
+
 	"login-api-jwt/bin/modules/user"
 	"login-api-jwt/bin/modules/user/models"
 
@@ -170,9 +171,31 @@ func (c *CommandRepository) Updates(ctx *gin.Context, u models.User) utils.Resul
 	return output
 }
 
-func (c *CommandRepository) UpdatePicture(ctx *gin.Context, p string) utils.Result {
+func (c *CommandRepository) UpdatePicture(ctx *gin.Context, userID string, p string) utils.Result {
 
 	r := c.ORM.DB.Update("picture_link", p)
+
+	output := utils.Result{
+		Data: p,
+		DB:   r,
+	}
+	return output
+}
+
+func (c *CommandRepository) UpdatePasswordByID(ctx *gin.Context, userID string, p string) utils.Result {
+
+	r := c.ORM.DB.Where("user_id = ?", userID).Update("password", p)
+
+	output := utils.Result{
+		Data: p,
+		DB:   r,
+	}
+	return output
+}
+
+func (c *CommandRepository) UpdatePasswordByEmail(ctx *gin.Context, email string, p string) utils.Result {
+
+	r := c.ORM.DB.Where("email = ?", email).Update("password", p)
 
 	output := utils.Result{
 		Data: p,

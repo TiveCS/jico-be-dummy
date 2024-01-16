@@ -29,6 +29,12 @@ type LoginRequest struct {
 	Password string `json:"password" form:"password"`
 }
 
+type PasswordVerificationRequest struct {
+	Username    string `json:"username" form:"username"`
+	OldPassword string `json:"old_password" form:"old_password"`
+	NewPassword string `json:"new_password" form:"new_password"`
+}
+
 type LoginResponse struct {
 	UserID      string `json:"id"`
 	Email       string `json:"email"`

@@ -6,9 +6,9 @@ import (
 	"login-api-jwt/bin/modules/user/models"
 	"login-api-jwt/bin/pkg/databases"
 	"login-api-jwt/bin/pkg/utils"
-
 	"login-api-jwt/bin/pkg/utils/validators"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -205,6 +205,71 @@ func (q CommandUsecase) PostLogin(ctx *gin.Context) {
 	ctx.JSON(result.Code, result)
 }
 
+func (q CommandUsecase) PatchPassword(ctx *gin.Context) {
+	var result utils.ResultResponse = utils.ResultResponse{
+		Code:    http.StatusUnauthorized,
+		Data:    nil,
+		Message: "Incorrect password",
+		Status:  false,
+	}
+
+	var userPasswordRequest models.PasswordVerificationRequest
+	err := ctx.ShouldBind(&userPasswordRequest)
+	ctx.Header("Access-Control-Allow-Origin", "*")
+	if err != nil {
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+
+	userID := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
+
+	// Find user's password hash by username
+	r := q.UserRepositoryCommand.FindPasswordByID(ctx, userID)
+	if r.DB.Error != nil {
+		if errors.Is(r.DB.Error, gorm.ErrRecordNotFound) {
+			// If data is not found in the database, abort with status Unauthorized
+			ctx.AbortWithStatusJSON(result.Code, result)
+			return
+		}
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+
+	// Compare the provided password with the hashed password in the database
+	err = bcrypt.CompareHashAndPassword([]byte(r.Password), []byte(userPasswordRequest.OldPassword))
+	if err != nil {
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+
+	ValidPassword := validators.IsValidPassword(userPasswordRequest.NewPassword)
+	if !ValidPassword {
+		result.Message = "password not valid"
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, result)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userPasswordRequest.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+
+	q.UserRepositoryCommand.UpdatePasswordByID(ctx, userID, string(hashedPassword))
+
+	result = utils.ResultResponse{
+		Code:    http.StatusOK,
+		Data:    nil,
+		Message: "Success Change User Password",
+		Status:  true,
+	}
+
+	// Respond to request with an HTTP 200 OK status code and userLoginResponse data in JSON format
+	ctx.JSON(result.Code, result)
+}
+
 func (q CommandUsecase) DeleteUser(ctx *gin.Context) {
 	var result utils.ResultResponse = utils.ResultResponse{
 		Code:    http.StatusBadRequest,
@@ -394,5 +459,42 @@ func (q CommandUsecase) PatchPicture(ctx *gin.Context) {
 		Status:  true,
 	}
 	// If messageprovider record was successfully saved, respond with messageprovider's registration data
+	ctx.JSON(result.Code, result)
+}
+
+func (q CommandUsecase) PatchDefaultPassword(ctx *gin.Context) {
+	var result utils.ResultResponse = utils.ResultResponse{
+		Code:    http.StatusInternalServerError,
+		Data:    nil,
+		Message: "internal server error",
+		Status:  false,
+	}
+
+	var userModel models.User
+	err := ctx.ShouldBind(&userModel)
+	ctx.Header("Access-Control-Allow-Origin", "*")
+	if err != nil {
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+	email := userModel.Email
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(os.Getenv("DEFAULT_PASS")), bcrypt.DefaultCost)
+	if err != nil {
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
+
+	q.UserRepositoryCommand.UpdatePasswordByEmail(ctx, email, string(hashedPassword))
+
+	result = utils.ResultResponse{
+		Code:    http.StatusOK,
+		Data:    nil,
+		Message: "Success Change User Password",
+		Status:  true,
+	}
+
+	// Respond to request with an HTTP 200 OK status code and userLoginResponse data in JSON format
 	ctx.JSON(result.Code, result)
 }

@@ -21,6 +21,8 @@ type UsecaseCommand interface {
 	PutProfile(ctx *gin.Context)
 	PatchPicture(ctx *gin.Context)
 	PostLogin(ctx *gin.Context)
+	PatchPassword(ctx *gin.Context)
+	PatchDefaultPassword(ctx *gin.Context)
 	DeleteUser(ctx *gin.Context)
 }
 
@@ -35,7 +37,9 @@ type RepositoryQuery interface {
 type RepositoryCommand interface {
 	Create(ctx *gin.Context, u models.User) utils.Result
 	Updates(ctx *gin.Context, u models.User) utils.Result
-	UpdatePicture(ctx *gin.Context, p string) utils.Result
+	UpdatePicture(ctx *gin.Context, userID string, p string) utils.Result
+	UpdatePasswordByID(ctx *gin.Context, userID string, p string) utils.Result
+	UpdatePasswordByEmail(ctx *gin.Context, email string, p string) utils.Result
 	Save(ctx *gin.Context, u models.User) utils.Result
 	FindPasswordByUsername(ctx *gin.Context, u string) utils.FindPasswordResult
 	FindPasswordByID(ctx *gin.Context, u string) utils.FindPasswordResult
