@@ -227,12 +227,12 @@ func (q QueryUsecase) GetUserOwned(ctx *gin.Context) {
 		Status:    false,
 	}
 
-	if totalCount == 0 {
-		resultPagination.Code = http.StatusNotFound
-		resultPagination.Message = "Data Not Found"
-		ctx.AbortWithStatusJSON(resultPagination.Code, resultPagination)
-		return
-	}
+	// if totalCount == 0 {
+	// 	resultPagination.Code = http.StatusNotFound
+	// 	resultPagination.Message = "Data Not Found"
+	// 	ctx.AbortWithStatusJSON(resultPagination.Code, resultPagination)
+	// 	return
+	// }
 
 	getProjectData := q.ProjectRepositoryQuery.FindByUserID(ctx, id, skip, limit)
 	if getProjectData.DB.Error != nil {
