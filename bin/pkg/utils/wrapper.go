@@ -26,12 +26,13 @@ type FindPasswordResult struct {
 }
 
 type FindProfileResult struct {
-	Data       models.User
-	Username   string
-	Name       string
-	PicureLink string
-	DB         *gorm.DB
-	Error      error
+	Data models.User
+	// UserID     string
+	// Username   string
+	// Name       string
+	// PicureLink string
+	DB    *gorm.DB
+	Error error
 }
 
 type ResultResponse struct {

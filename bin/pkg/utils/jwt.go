@@ -24,6 +24,7 @@ func GenerateUserJWT(u models.User) (string, error) {
 	claims["username"] = u.Username
 	claims["name"] = u.Name
 	claims["email"] = u.Email
+	claims["picture_link"] = u.PictureLink
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 

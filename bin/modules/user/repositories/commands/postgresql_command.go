@@ -88,11 +88,11 @@ func (c *CommandRepository) FindProfileByID(ctx *gin.Context, user_id string) ut
 	r := c.ORM.DB.First(&userModel, "user_id = ?", user_id)
 	// Prepare the result, including retrieved user data and database operation result
 	output := utils.FindProfileResult{
-		PicureLink: userModel.PictureLink,
-		Username:   userModel.Username,
-		Name:       userModel.Name,
-		Data:       userModel,
-		DB:         r,
+		// PicureLink: userModel.PictureLink,
+		// Username:   userModel.Username,
+		// Name:       userModel.Name,
+		Data: userModel,
+		DB:   r,
 	}
 	return output
 }
@@ -182,23 +182,40 @@ func (c *CommandRepository) UpdatePicture(ctx *gin.Context, userID string, p str
 	return output
 }
 
-func (c *CommandRepository) UpdatePasswordByID(ctx *gin.Context, userID string, p string) utils.Result {
+// resulting in unwanted behavior
+// func (c *CommandRepository) UpdatePasswordByID(ctx *gin.Context, userID string, p string) utils.Result {
 
-	r := c.ORM.DB.Where("user_id = ?", userID).Update("password", p)
+// 	r := c.ORM.DB.Where("user_id = ?", userID).Update("password", p)
 
-	output := utils.Result{
-		Data: p,
-		DB:   r,
-	}
-	return output
-}
+// 	output := utils.Result{
+// 		Data: p,
+// 		DB:   r,
+// 	}
+// 	return output
+// }
 
-func (c *CommandRepository) UpdatePasswordByEmail(ctx *gin.Context, email string, p string) utils.Result {
+// func (c *CommandRepository) UpdatePasswordByEmail(ctx *gin.Context, email string, p string) utils.Result {
 
-	r := c.ORM.DB.Where("email = ?", email).Update("password", p)
+// 	r := c.ORM.DB.Where("email = ?", email).Update("password", p)
 
-	output := utils.Result{
-		Data: p,
+// 	output := utils.Result{
+// 		Data: p,
+// 		DB:   r,
+// 	}
+// 	return output
+// }
+
+func (c *CommandRepository) FindProfileByUsername(ctx *gin.Context, username string) utils.FindProfileResult {
+	var userModel models.User
+
+	// Use ORM to find a user record by ID
+	r := c.ORM.DB.First(&userModel, "username = ?", username)
+	// Prepare the result, including retrieved user data and database operation result
+	output := utils.FindProfileResult{
+		// PicureLink: userModel.PictureLink,
+		// Username:   userModel.Username,
+		// Name:       userModel.Name,
+		Data: userModel,
 		DB:   r,
 	}
 	return output

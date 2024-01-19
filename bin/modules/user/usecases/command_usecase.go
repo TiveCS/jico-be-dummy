@@ -222,12 +222,17 @@ func (q CommandUsecase) PatchPassword(ctx *gin.Context) {
 	}
 
 	userID := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
+	email := ctx.MustGet("user").(jwt.MapClaims)["email"].(string)
+	username := ctx.MustGet("user").(jwt.MapClaims)["username"].(string)
+	name := ctx.MustGet("user").(jwt.MapClaims)["name"].(string)
+	pictureLink := ctx.MustGet("user").(jwt.MapClaims)["picture_link"].(string)
 
 	// Find user's password hash by username
 	r := q.UserRepositoryCommand.FindPasswordByID(ctx, userID)
 	if r.DB.Error != nil {
 		if errors.Is(r.DB.Error, gorm.ErrRecordNotFound) {
 			// If data is not found in the database, abort with status Unauthorized
+			result.Code = http.StatusNotFound
 			ctx.AbortWithStatusJSON(result.Code, result)
 			return
 		}
@@ -257,7 +262,16 @@ func (q CommandUsecase) PatchPassword(ctx *gin.Context) {
 		return
 	}
 
-	q.UserRepositoryCommand.UpdatePasswordByID(ctx, userID, string(hashedPassword))
+	user := models.User{
+		UserID:      userID,
+		Password:    string(hashedPassword),
+		Email:       email,
+		Username:    username,
+		Name:        name,
+		PictureLink: pictureLink,
+	}
+
+	q.UserRepositoryCommand.Updates(ctx, user)
 
 	result = utils.ResultResponse{
 		Code:    http.StatusOK,
@@ -315,7 +329,7 @@ func (q CommandUsecase) PutProfile(ctx *gin.Context) {
 	//get JWT data
 	userID := ctx.MustGet("user").(jwt.MapClaims)["id"].(string)
 
-	var beforeUserData = q.UserRepositoryCommand.FindProfileByID(ctx, userID).PicureLink
+	var beforeUserData = q.UserRepositoryCommand.FindProfileByID(ctx, userID).Data.PictureLink
 	var userModel models.User
 	err := ctx.ShouldBind(&userModel)
 	if err != nil {
@@ -471,13 +485,27 @@ func (q CommandUsecase) PatchDefaultPassword(ctx *gin.Context) {
 	}
 
 	var userModel models.User
+
 	err := ctx.ShouldBind(&userModel)
 	ctx.Header("Access-Control-Allow-Origin", "*")
 	if err != nil {
 		ctx.AbortWithStatusJSON(result.Code, result)
 		return
 	}
-	email := userModel.Email
+
+	r := q.UserRepositoryCommand.FindProfileByUsername(ctx, userModel.Username)
+	if r.DB.Error != nil {
+		if errors.Is(r.DB.Error, gorm.ErrRecordNotFound) {
+			// If data is not found in the database, abort with status Unauthorized
+			result.Code = http.StatusNotFound
+			result.Message = "User Not Found"
+			ctx.AbortWithStatusJSON(result.Code, result)
+			return
+		}
+		result.Code = http.StatusInternalServerError
+		ctx.AbortWithStatusJSON(result.Code, result)
+		return
+	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(os.Getenv("DEFAULT_PASS")), bcrypt.DefaultCost)
 	if err != nil {
@@ -486,7 +514,10 @@ func (q CommandUsecase) PatchDefaultPassword(ctx *gin.Context) {
 		return
 	}
 
-	q.UserRepositoryCommand.UpdatePasswordByEmail(ctx, email, string(hashedPassword))
+	userModel = r.Data
+	userModel.Password = string(hashedPassword)
+
+	q.UserRepositoryCommand.Updates(ctx, userModel)
 
 	result = utils.ResultResponse{
 		Code:    http.StatusOK,

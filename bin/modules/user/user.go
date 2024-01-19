@@ -38,11 +38,12 @@ type RepositoryCommand interface {
 	Create(ctx *gin.Context, u models.User) utils.Result
 	Updates(ctx *gin.Context, u models.User) utils.Result
 	UpdatePicture(ctx *gin.Context, userID string, p string) utils.Result
-	UpdatePasswordByID(ctx *gin.Context, userID string, p string) utils.Result
-	UpdatePasswordByEmail(ctx *gin.Context, email string, p string) utils.Result
+	// UpdatePasswordByID(ctx *gin.Context, userID string, p string) utils.Result
+	// UpdatePasswordByEmail(ctx *gin.Context, email string, p string) utils.Result
 	Save(ctx *gin.Context, u models.User) utils.Result
 	FindPasswordByUsername(ctx *gin.Context, u string) utils.FindPasswordResult
 	FindPasswordByID(ctx *gin.Context, u string) utils.FindPasswordResult
 	FindProfileByID(ctx *gin.Context, id string) utils.FindProfileResult
+	FindProfileByUsername(ctx *gin.Context, id string) utils.FindProfileResult
 	Delete(ctx *gin.Context, id string) utils.Result
 }
